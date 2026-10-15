@@ -23,13 +23,13 @@ transcripts, or private machine configuration.
 1. Branch from the latest public `main`.
 2. Explain the user-visible behavior and any compatibility impact.
 3. Run the test suite and package build locally.
-4. Open a pull request against `main` and respond to review feedback.
+4. Open a pull request against `main` and respond to any maintainer feedback.
 
-Pull requests must pass CI and maintainer review before merge.
+Pull requests must pass the required CI checks before merge. Maintainer review
+is welcome but is not a merge requirement.
 
-## Releases
+## Distribution
 
-Maintainers publish reviewed releases from version tags such as `v1.0.0`.
-Update the package version, confirm CI and package checks pass, and create a
-tag only for a release that is ready for PyPI. Branch pushes and pull requests
-do not publish packages.
+The public GitHub `main` branch is the canonical distribution. Users install
+Trinity directly from the repository with the command in `README.md`; no
+package-index account, release upload, or version tag is required.

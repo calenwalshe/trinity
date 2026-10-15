@@ -23,17 +23,18 @@ def test_distribution_metadata_matches_release_name():
 def test_installed_console_entrypoint_runs_help_and_reads_persisted_state(tmp_path):
     wheel_dir = tmp_path / "dist"
     wheel_dir.mkdir()
-    built = subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
+    built = subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps",
                             "--wheel-dir", str(wheel_dir), str(ROOT)], capture_output=True, text=True, timeout=120)
     assert built.returncode == 0, built.stderr
     wheel = next(wheel_dir.glob("herdr_trinity-*.whl"))
 
     environment = tmp_path / "venv"
-    venv.EnvBuilder(with_pip=True).create(environment)
+    venv.EnvBuilder(with_pip=False).create(environment)
     scripts = environment / ("Scripts" if os.name == "nt" else "bin")
     python = scripts / ("python.exe" if os.name == "nt" else "python")
     command = scripts / ("trinity.exe" if os.name == "nt" else "trinity")
-    installed = subprocess.run([str(python), "-m", "pip", "install", "--no-deps", str(wheel)],
+    installed = subprocess.run([sys.executable, "-m", "pip", "--python", str(python), "install",
+                                "--no-deps", str(wheel)],
                                capture_output=True, text=True, timeout=120)
     assert installed.returncode == 0, installed.stderr
     help_result = subprocess.run([str(command), "--help"], capture_output=True, text=True, timeout=15)

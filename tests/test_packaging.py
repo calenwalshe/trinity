@@ -50,10 +50,12 @@ def test_installed_console_entrypoint_runs_help_and_reads_persisted_state(tmp_pa
     assert "Persisted package smoke test" in status.stdout
 
 
-def test_readme_documents_uv_install_and_upgrade():
+def test_readme_documents_github_install_and_upgrade():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "uv tool install herdr-trinity" in readme
-    assert "uv tool upgrade herdr-trinity" in readme
+    github_source = "git+https://github.com/calenwalshe/trinity.git"
+    assert f"uv tool install {github_source}" in readme
+    assert f"uv tool install --force {github_source}" in readme
+    assert "does not publish packages to PyPI" in readme
     assert "Python 3.10" in readme
     assert "Herdr" in readme
 
@@ -68,15 +70,9 @@ def test_ci_workflow_tests_supported_python_endpoints_and_builds_package():
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert '"3.10"' in workflow and '"3.15"' in workflow
     assert "python -m pytest -q" in workflow
-    assert "python -m build" in workflow and "python -m twine check" in workflow
+    assert "python -m build" in workflow
+    assert "twine" not in workflow
 
 
-def test_release_workflow_only_publishes_reviewed_version_tags():
-    workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    assert "push:" in workflow and "tags:" in workflow and '"v[0-9]*"' in workflow
-    assert "environment: pypi" in workflow
-    assert "id-token: write" in workflow
-    assert "pypa/gh-action-pypi-publish@release/v1" in workflow
-    assert "fetch-depth: 0" in workflow
-    assert "git fetch origin main --no-tags" in workflow
-    assert 'git merge-base --is-ancestor "$GITHUB_SHA" origin/main' in workflow
+def test_distribution_does_not_publish_to_a_package_index():
+    assert not (ROOT / ".github/workflows/release.yml").exists()

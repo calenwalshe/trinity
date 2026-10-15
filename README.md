@@ -8,6 +8,7 @@ an optional agent skill for explicit task launches.
 
 - Python 3.10 or newer
 - [`uv`](https://docs.astral.sh/uv/)
+- Git
 - A running [Herdr](https://herdr.dev/) session; launch commands must run inside
   a Herdr-managed pane
 - A supported agent CLI for the configured worker, supervisor, and consultant
@@ -18,20 +19,22 @@ management; Trinity does not install agent configuration or credentials for you.
 ## Install the CLI
 
 ```sh
-uv tool install herdr-trinity
+uv tool install git+https://github.com/calenwalshe/trinity.git
 trinity --help
 ```
 
-Upgrade the installed release with:
+This installs directly from the public GitHub repository. Trinity does not
+publish packages to PyPI. Reinstall from GitHub to update to the latest public
+`main`:
 
 ```sh
-uv tool upgrade herdr-trinity
+uv tool install --force git+https://github.com/calenwalshe/trinity.git
 ```
 
-To run the current private development checkout as an editable tool:
+To run a local checkout as an editable tool:
 
 ```sh
-uv tool install --editable /path/to/trinity-dev --force
+uv tool install --editable . --force
 ```
 
 ## Install the optional Trinity skill
@@ -100,10 +103,10 @@ uv run pytest -q
 uv build
 ```
 
-Pull requests run the test suite and build the package. Reviewed version tags
-are the only release trigger. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
-contribution flow and [SECURITY.md](SECURITY.md) for private vulnerability
-reporting guidance.
+Pull requests run the test suite and build the package. The public `main`
+branch is the canonical distribution; users install it directly from GitHub.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution flow and
+[SECURITY.md](SECURITY.md) for private vulnerability reporting guidance.
 
 ## License
 

@@ -55,7 +55,7 @@ def test_readme_documents_github_install_and_upgrade():
     github_source = "git+https://github.com/calenwalshe/trinity.git"
     assert f"uv tool install {github_source}" in readme
     assert f"uv tool install --force {github_source}" in readme
-    assert "does not publish packages to PyPI" in readme
+    assert "does not publish packages to PyPI" in " ".join(readme.split())
     assert "Python 3.10" in readme
     assert "Herdr" in readme
 

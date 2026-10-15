@@ -36,7 +36,7 @@ NEXT = {
     "foreign_binding": "A role was bound by hand to a session this run did not create. Stop this run and propose a fresh one.",
     "herdr_unavailable": "Herdr is not reachable from this pane. Run setup again from inside Herdr.",
     "herdr_launch_failed": "Herdr refused the step; nothing was created. Run setup again; if it repeats, report the detail.",
-    "uncertain_provisioning": "An earlier step may or may not have taken effect. Run setup again: it inspects the run's own workspace before creating anything.",
+    "uncertain_provisioning": "An earlier Herdr step may have taken effect, but ownership cannot be proved. Inspect the Trinity tab, close any stray panes, stop this run, and propose a fresh run; Trinity will not claim an unverified pane.",
     "role_start_failed": "The agent did not start. Run setup again to retry in the same run-owned pane.",
     "start_attempts_exhausted": "The agent failed to start three times. Inspect the pane in the run's workspace, then stop the run or ask for help.",
     "foreign_agent_in_pane": "A run pane now hosts an agent this run did not start. It was left untouched; stop the run or close that pane yourself.",
@@ -286,15 +286,9 @@ class Provisioner:
                 self._block("uncertain_provisioning", f"{role}:pane", {"code": panes.code})
             panes = [pane for pane in panes if pane.get("tab_id") == workspace["tab_id"]]
             assigned = {r["pane_id"] for r in state["team"]["roles"].values() if r["pane_id"]}
-            unassigned = [p["pane_id"] for p in panes if p.get("pane_id") not in assigned]
-            if len(unassigned) > 1:
-                self._block("uncertain_provisioning", f"{role}:pane", {"unassigned_panes": len(unassigned)})
-            if len(unassigned) == 1:
-                def adopt(state):
-                    self._role(state, role).update(status="pane_created", pane_id=unassigned[0])
-                    self._event("pane_adopted", {"role": role, "pane_id": unassigned[0]})
-                self._txn(adopt)
-                return
+            unverified = sorted(p["pane_id"] for p in panes
+                                if isinstance(p.get("pane_id"), str) and p["pane_id"] not in assigned)
+            self._block("uncertain_provisioning", f"{role}:pane", {"unverified_panes": unverified})
 
         def intend(state):
             self._role(state, role)["status"] = "requested"

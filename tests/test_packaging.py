@@ -77,3 +77,6 @@ def test_release_workflow_only_publishes_reviewed_version_tags():
     assert "environment: pypi" in workflow
     assert "id-token: write" in workflow
     assert "pypa/gh-action-pypi-publish@release/v1" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "git fetch origin main --no-tags" in workflow
+    assert 'git merge-base --is-ancestor "$GITHUB_SHA" origin/main' in workflow

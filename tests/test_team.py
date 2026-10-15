@@ -139,13 +139,42 @@ def test_bootstrap_supervisor_is_replaced_by_run_owned_supervisor(run, fake):
     assert len(fake.launches("agent start")) == 3
 
 
-def test_ambiguous_split_adopts_existing_run_pane(run, fake):
+def test_ambiguous_split_never_adopts_unverified_pane(run, fake):
+    path, invoke = run
+    approve(invoke, fake)
+    fake.faults["pane split"] = ["timeout_before"]
+    assert invoke("provision")[1]["reason"] == "uncertain_provisioning"
+    state, _ = snapshot(path)
+    tab_id = state["team"]["workspace"]["tab_id"]
+    foreign = f"{state['team']['workspace']['workspace_id']}:p-foreign"
+    fake.panes[foreign] = {"pane_id": foreign, "workspace_id": state["team"]["workspace"]["workspace_id"],
+                           "tab_id": tab_id, "cwd": str(run[0].parent / "project")}
+    fake.agents[foreign] = {"pane_id": foreign, "workspace_id": state["team"]["workspace"]["workspace_id"],
+                            "tab_id": tab_id, "agent": None, "agent_session": None}
+
+    code, result = invoke("provision")
+
+    assert code == 3 and result["reason"] == "uncertain_provisioning"
+    state, _ = snapshot(path)
+    assert state["team"]["roles"]["supervisor"]["pane_id"] is None
+    assert foreign not in [command[command.index("--pane") + 1]
+                           for command in fake.launches("agent start") if "--pane" in command]
+    assert len(fake.launches("pane split")) == 1
+
+
+def test_ambiguous_split_with_single_candidate_stays_blocked(run, fake):
     path, invoke = run
     approve(invoke, fake)
     fake.faults["pane split"] = ["timeout_after"]
     assert invoke("provision")[1]["reason"] == "uncertain_provisioning"
-    assert invoke("provision")[1]["result"]["status"] == "ready"
-    assert len(fake.launches("pane split")) == 2
+
+    code, result = invoke("provision")
+
+    assert code == 3 and result["reason"] == "uncertain_provisioning"
+    state, _ = snapshot(path)
+    assert state["team"]["roles"]["supervisor"]["pane_id"] is None
+    assert len(fake.launches("pane split")) == 1
+    assert len(fake.launches("agent start")) == 1
 
 
 def test_reprovisioning_a_ready_team_launches_nothing(run, fake):
